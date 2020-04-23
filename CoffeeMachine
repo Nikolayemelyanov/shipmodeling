@@ -1,0 +1,132 @@
+import java.util.*;
+import java.util.Scanner;
+import static java.lang.Integer.parseInt;
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc=new Scanner(System.in);
+        CoffeeMachine coffeeMachine=new CoffeeMachine();
+        System.out.println("Write action (buy, fill, take, remaining, exit):");
+        String s= sc.next();
+        System.out.println();
+        while (!s.equals("exit")) {
+            switch (s) {
+                case "buy":
+                    coffeeMachine.buy(sc);
+                    break;
+                case "fill":
+                    coffeeMachine.fill(sc);
+                    break;
+                case "take":
+                    coffeeMachine.getMoney();
+                    break;
+                case "remaining":
+                    coffeeMachine.state();
+                    break;
+            }
+            System.out.println();
+            System.out.println("Write action (buy, fill, take, remaining, exit):");
+            s=sc.next();
+        }
+        sc.close();
+        }
+    }
+    public class CoffeeMachine {
+    int water=400;
+    int milk=540;
+    int beans=120;
+    int cups=9;
+    int money=550;
+    public void state(){
+        System.out.println("The coffee machine has:");
+        System.out.println(water + " of water");
+        System.out.println(milk + " of milk");
+        System.out.println(beans + " of coffee beans");
+        System.out.println(cups + " of disposable cups");
+        System.out.println(money + " of money");
+    }
+    public void getEspresso() {
+        boolean can = false;
+        if (this.checkResources(250, 0, 16, can)) {
+            water -= 250;
+            beans -= 16;
+            money += 4;
+            cups -= 1;
+        }
+    }
+    public void getLatte() {
+        boolean can = false;
+        if (this.checkResources(350, 75, 20, can)) {
+        water-=350;
+        beans-=20;
+        milk-=75;
+        money += 7;
+        cups-=1;}
+    }
+    public void getCappuccino() {
+        boolean can = false;
+        if (this.checkResources(200, 100, 12, can)) {
+            water -= 200;
+            beans -= 12;
+            milk -= 100;
+            money += 6;
+            cups -= 1;
+        }
+    }
+    public void fill(int waterAdd, int milkAdd, int beansAdd, int cupsAdd){
+        water+=waterAdd;
+        milk+=milkAdd;
+        beans+=beansAdd;
+        cups+=cupsAdd;
+    }
+    public void getMoney() {
+        System.out.println("I gave you $" + this.money);
+        money=0;
+    }
+    public void buy(Scanner scanner)  {
+        System.out.println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, back - to main menu:");
+        String s = scanner.next();
+        int k = s.equals("back") ? 4 : parseInt(s);
+        switch (k) {
+            case 1:
+                this.getEspresso();
+                break;
+            case 2:
+                this.getLatte();
+                break;
+            case 3:
+                this.getCappuccino();
+                break;
+            case 4:
+                break;
+        }
+    }
+    public void fill(Scanner scanner){
+        System.out.println("Write how many ml of water do you want to add:");
+        int water = scanner.nextInt();
+        System.out.println("Write how many ml of milk do you want to add:");
+        int milk = scanner.nextInt();
+        System.out.println("Write how many grams of coffee beans do you want to add:");
+        int beans = scanner.nextInt();
+        System.out.println("Write how many disposable cups of coffee do you want to add:");
+        int cups = scanner.nextInt();
+        this.fill(water, milk, beans, cups);
+    }
+    public boolean checkResources(int needWater, int needMilk, int needBeans, boolean enough) {
+        enough=false;
+        if (needWater > this.water){
+            System.out.println("Sorry, not enough water!");
+        } else if (needMilk > this.milk) {
+            System.out.println("Sorry, not enough milk!");
+        } else if (needBeans> this.beans) {
+            System.out.println("Sorry, not enough beans!");
+
+        } else if (this.cups == 0) {
+            System.out.println("Sorry, not enough cups!");
+        } else {
+            enough=true;
+            System.out.println("I have enough resources, making you a coffee!");
+        }
+        return enough;
+    }
+
+}
