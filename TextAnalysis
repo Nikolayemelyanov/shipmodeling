@@ -1,0 +1,146 @@
+package readability;
+import java.io.IOException;
+import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+public class Main {
+    public static void main(String[] args) throws IOException {
+        String filePath = "./" + args[0];
+        Scanner sc = new Scanner(System.in);        
+        String s = new String(Files.readAllBytes(Paths.get(filePath)));
+        String[] array = s.split("[.!?]");
+        int sentences = array.length;
+        int syllabies = 0;
+        int polysyllabies = 0;
+        int wordsSum = 0;
+        int characters = 0;
+        double finalScore = 0;
+        int years = 0;
+        String ss = s.replaceAll("\\s","");
+        characters = ss.length();
+        for (String value : array) {
+            String[] words = value.trim().split(" ");
+            wordsSum += words.length;
+            for (String word :words) {
+                syllabies += countVowels(word);
+                if (countVowels(word) > 2) {
+                    polysyllabies++;
+                }
+            }
+        }
+
+        System.out.println("Words: " + wordsSum);
+        System.out.println("Sentences: " + sentences);
+        System.out.println("Characters: " + characters);
+        System.out.println("Syllables: " + syllabies);
+        System.out.println("Polysyllables: " + polysyllabies);
+        System.out.println();
+        calculateScore(sc, wordsSum,sentences,characters, syllabies, polysyllabies);
+    }
+        public static int getProperAge ( int finalScoreInt){
+            int years =0;
+            switch (finalScoreInt) {
+                case 1:
+                    years = 6;
+                    break;
+                case 2:
+                    years = 7;
+                    break;
+                case 3:
+                    years = 9;
+                    break;
+                case 4:
+                    years = 10;
+                    break;
+                case 5:
+                    years = 11;
+                    break;
+                case 6:
+                    years = 12;
+                    break;
+                case 7:
+                    years = 13;
+                    break;
+                case 8:
+                    years = 14;
+                    break;
+                case 9:
+                    years = 15;
+                    break;
+                case 10:
+                    years = 16;
+                    break;
+                case 11:
+                    years = 17;
+                    break;
+                case 12:
+                    years = 18;
+                    break;
+                case 13:
+                    years = 24;
+                    break;
+                case 14:
+                    years = 24;
+                    break;
+            }
+            return years;
+        }
+        public static int countVowels (String string){
+            char[] sChar = string.toCharArray();
+
+            String vowels = "[aeyuioAEYUIO]";
+            int counter = 0;
+            int len = sChar.length;
+            for (int i = 0; i < len - 1; i++)
+                if (Character.toString(sChar[i]).matches(vowels) && !Character.toString(sChar[i + 1]).matches(vowels))
+                    counter++;
+            if (Character.toString(sChar[len - 1]).matches("[ayuio]")) counter++;
+            if (counter == 0) counter++;
+            return counter;
+
+        }
+        public static void calculateScore(Scanner scanner, int words, int sentences, int characters, int syllables, int polysyllables) {
+            System.out.println("Enter the score you want to calculate (ARI, FK, SMOG, CL, all): ");
+            String choose = scanner.next();
+            switch (choose) {
+                case "ARI" :
+                    double indexARI = 4.71*characters/words+0.5*words/sentences-21.43;
+                    int age = getProperAge((int) Math.round(indexARI));
+                    System.out.println("Automated Readability Index: " + indexARI + " (about " + age + " year olds).");
+                    break;
+                case "FK" :
+                    double indexFK = 0.39 * words / sentences + 11.8 *syllables / words -15.59;
+                    int ageFK = getProperAge((int) Math.round(indexFK));
+                    System.out.println("Flesch–Kincaid readability tests: " + indexFK + " (about " + ageFK + " year olds).");
+                    break;
+                case "SMOG" :
+                    double indexSMOG = 1.043 * Math.sqrt((double)polysyllables * 30/(double)sentences) + 3.1291;
+                    int ageSMOG = getProperAge((int) Math.round(indexSMOG));
+                    System.out.println("Simple Measure of Gobbledygook: " + indexSMOG + " (about " + ageSMOG + " year olds).");
+                    break;
+                case "CL" :
+                    double indexCL = 0.0588 * 100 * characters / words - 0.296 * 100 *sentences / words - 15.8;
+                    int ageCL = getProperAge((int) Math.round(indexCL));
+                    System.out.println("Coleman–Liau index: " + indexCL + " (about " + ageCL + " year olds).");
+                    break;
+                case "all" :
+                    indexARI = 4.71*characters/words+0.5*words/sentences-21.43;
+                    age = getProperAge((int) Math.round(indexARI));
+                    System.out.println("Automated Readability Index: " + indexARI + " (about " + age + " year olds).");
+                    indexFK = 0.39 * words / sentences + 11.8 *syllables / words -15.59;
+                    ageFK = getProperAge((int) Math.round(indexFK));
+                    System.out.println("Flesch–Kincaid readability tests: " + indexFK + " (about " + ageFK + " year olds).");
+                    indexSMOG = 1.043 * Math.sqrt((double)polysyllables * 30/(double)sentences) + 3.1291;
+                    ageSMOG = getProperAge((int) Math.round(indexSMOG));
+                    System.out.println("Simple Measure of Gobbledygook: " + indexSMOG + " (about " + ageSMOG + " year olds).");
+                    indexCL = 0.0588 * 100 * characters / words - 0.296 * 100 *sentences / words - 15.8;
+                    ageCL = getProperAge((int) Math.round(indexCL));
+                    System.out.println("Coleman–Liau index: " + indexCL + " (about " + ageCL + " year olds).");
+                    System.out.println("This text should be understood in average by " + ((double)age + (double)ageFK + (double)ageSMOG + (double)ageCL)/4 + " year olds.");
+
+            }
+
+        }
+
+
+}
