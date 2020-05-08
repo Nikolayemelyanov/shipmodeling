@@ -1,0 +1,226 @@
+package calculator;
+import java.math.BigInteger;
+import java.util.*;
+
+public class Main {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String s = scanner.nextLine();
+        Map<String, BigInteger> variables = new TreeMap<>();
+        while (!"/exit".equals(s)) {
+            if (s.matches("/\\w*") && !"/help".equals(s) ) {
+                System.out.println("Unknown command");
+            } else if ("".equals(s)){
+            }
+            else if ("/help".equals(s)) {
+                getHelp();
+            } else if (s.matches("\\w+ *= *[\\w= ]+")){
+                inputVariable(s, variables);
+            } else {
+                calculateFromString(s, variables);
+            }
+            s = scanner.nextLine();
+        }
+        scanner.close();
+        System.out.println("Bye!");
+    }
+
+    public static ArrayList<String> cutTheString(String string) {
+        char[] characters = string.toCharArray();
+        StringBuilder sb = new StringBuilder();
+        ArrayList<String> arrayListResult = new ArrayList<>();
+        String charPrev = "";
+        for (int i = 0; i < characters.length; i++) {
+            String charCur = String.valueOf(characters[i]);
+            if (charCur.matches("[()\\+\\-\\*\\/=]")) {
+                if (sb.length() != 0) arrayListResult.add(sb.toString());
+                arrayListResult.add(charCur);
+                charPrev = charCur;
+                sb.delete(0, sb.length());
+            } else if (charCur.matches("[a-zA-Z\\d]")) {
+                sb.append(charCur);
+            }
+        }
+        if (sb.length() != 0) arrayListResult.add(sb.toString());
+        return arrayListResult;
+    }
+
+    public static ArrayList<String> convertPlusMinus(ArrayList<String> arrayList) {
+        ArrayList<String> arrayListResult = new ArrayList<>();
+        int len = arrayList.size();
+        int count = 0;
+        String cur = "";
+        String next = "";
+        for (int i = 0; i < len - 1; i++) {
+            cur = arrayList.get(i);
+            next = arrayList.get(i + 1);
+            if (cur.matches("\\+") && next.matches("[^ \\+]")) {
+                arrayListResult.add(cur);
+            } else if (cur.matches("\\+") && next.matches("[\\+]")) {
+                continue;
+            } else if (cur.matches("\\-") && next.matches("\\-")) {
+                count++;
+            } else if (cur.matches("\\-") && next.matches("[^\\-]")) {
+                count++;
+                String sign = count % 2 == 0 ? "+" : "-";
+                arrayListResult.add(sign);
+                count = 0;
+            } else {
+                arrayListResult.add(cur);
+            }
+
+
+        }
+        arrayListResult.add(arrayList.get(arrayList.size() - 1));
+        return arrayListResult;
+    }
+
+    public static ArrayList<String> getPostfixFromInfix(ArrayList<String> array) {
+
+        ArrayList<String> result = new ArrayList<>();
+        Deque<String> stack = new ArrayDeque<>();
+        for (int i = 0; i < array.size(); i++) {
+            if (array.get(i).matches("[a-zA-Z\\d]+")) {
+                result.add(array.get(i));
+            } else if (array.get(i).matches("\\(")) {
+                stack.offerFirst(array.get(i));
+            } else if (array.get(i).matches("[\\+\\-\\/\\*]")) {
+                if (stack.isEmpty() || stack.peekFirst().matches("\\(")) {
+                    stack.offerFirst(array.get(i));
+                } else if (array.get(i).matches("[\\/\\*]") && stack.peekFirst().matches("[\\+\\-]")) {
+                    stack.offerFirst(array.get(i));
+                } else if (array.get(i).matches("[\\/\\*]") && stack.peekFirst().matches("[\\*\\/]")) {
+                    while (stack.peekFirst().matches("[\\*\\/]")) {
+                        result.add(stack.pollFirst());
+                    }
+                    stack.offerFirst(array.get(i));
+                } else if (array.get(i).matches("[\\+\\-]") && stack.peekFirst().matches("[\\+\\-\\*\\/]")) {
+                    while (stack.peekFirst().matches("[\\+\\-\\*\\/]")) {
+                        result.add(stack.pollFirst());
+                        if (stack.isEmpty()) {
+                            break;
+                        }
+                    }
+                    stack.offerFirst(array.get(i));
+                }
+            } else if (array.get(i).matches("\\)")) {
+                if (stack.isEmpty()) {
+                    continue;
+                } else {
+                    while (stack.peekFirst().matches("[^\\(]")) {
+                        result.add(stack.pollFirst());
+                    }
+
+                }
+                stack.pollFirst();
+            }
+        }
+        while (!stack.isEmpty()) {
+            result.add(stack.pollFirst());
+        }
+        return result;
+    }
+
+    public static boolean checkExpression(ArrayList<String> array) {
+        boolean check = true;
+        int countleft = 0;
+        int countRight = 0;
+        for (int i = 0; i < array.size(); i++) {
+            if (array.get(i).equals("(")) {
+                countleft++;
+            } else if (array.get(i).equals(")")) {
+                countRight++;
+            } else if (array.get(i).equals("*") && array.get(i + 1).equals("*")) {
+                check = false;
+            }
+
+        }
+        return check && countleft == countRight;
+    }
+
+    public static String result(ArrayList<String> postFixArray, Map<String, BigInteger> map) {
+
+        Deque<String> stack = new ArrayDeque<>();
+        for (int i = 0; i < postFixArray.size(); i++) {
+            if (postFixArray.get(i).matches("\\d+")) {
+                stack.offerFirst(postFixArray.get(i));
+            } else if (postFixArray.get(i).matches("[a-zA-Z]+")) {
+                stack.offerFirst(String.valueOf(map.get(postFixArray.get(i))));
+            } else if (postFixArray.get(i).matches("[\\+\\-\\*\\/]")) {
+                BigInteger y = new BigInteger(stack.pollFirst());
+                BigInteger x = new BigInteger(stack.pollFirst());
+                BigInteger z = BigInteger.ZERO;
+                switch (postFixArray.get(i)) {
+                    case "+":
+                        z = x.add(y);
+                        break;
+                    case "-":
+                        z = x.subtract(y);
+                        break;
+                    case "*":
+                        z = x.multiply(y);
+                        break;
+                    case "/":
+                        z = x.divide(y);
+                        break;
+                }
+                stack.offerFirst(String.valueOf(z));
+            }
+        }
+        return stack.pollFirst();
+    }
+
+    public static void getHelp() {
+        System.out.println("The program calculates the sequence of arithmetical actions. ");
+        System.out.println("Use the whitespace to isolate each number and operator in your expression.");
+    }
+
+    public static void inputVariable(String string, Map<String, BigInteger> map) {
+        String[] ar = string.split("=");
+        String var = ar[0].trim();
+        String val = ar[1].trim();
+        if (ar.length > 2) {
+            System.out.println("Invalid assignment");
+        } else if (var.matches("[a-zA-Z]+") && val.matches("\\d+")) {
+            BigInteger x = new BigInteger(val);
+            map.put(var, x);
+        } else if (var.matches(".*\\d+.*") && val.matches("\\d+")) {
+            System.out.println("Invalid identifier");
+        } else if (var.matches("[a-zA-Z]+") && val.matches((".*[a-zA-Z]+.*"))) {
+            if (val.matches("[a-zA-Z]+")) {
+                if (map.containsKey(val) && map.containsKey(val)) {
+                    BigInteger y = map.get(val);
+                    map.put(var, y);
+                } else {
+                    System.out.println("Unknown variable");
+                }
+            } else {
+                System.out.println("Invalid assignment");
+            }
+        }
+    }
+    public static void calculateFromString (String string, Map<String, BigInteger> map){
+
+
+        ArrayList<String> array = cutTheString(string);
+        if (array.size() == 1) {
+            if (map.containsKey(array.get(0))) {
+                System.out.println(map.get(array.get(0)));
+            } else if (array.get(0).matches("[a-zA-Z]+")) {
+                System.out.println("Unknown variable");
+            } else {
+                int a = Integer.parseInt(array.get(0));
+                System.out.println(a);
+            }
+        } else {
+            if (checkExpression(array)) {
+                ArrayList<String> postFixExpression = getPostfixFromInfix(convertPlusMinus(array));
+                System.out.println(result(postFixExpression, map));
+            } else {
+                System.out.println("Invalid expression");
+            }
+
+        }
+    }
+}
